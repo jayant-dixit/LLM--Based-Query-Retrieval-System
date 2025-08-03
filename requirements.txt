@@ -1,0 +1,11 @@
+fastapi
+pydantic
+uvicorn
+aiohttp
+PyMuPDF
+sentence_transformers
+pinecone
+dotenv
+groq
+asyncio
+httpx

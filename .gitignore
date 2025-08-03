@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# VS Code settings
+.vscode/
+
+# macOS files
+.DS_Store
+
+# Logs and debug files
+*.log
+
+# Python dependency files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.cache
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+
+# FastAPI / Uvicorn specific
+instance/
+*.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Language model outputs or serialized data
+*.pkl
+*.joblib
+
+# Ignore Pinecone credentials or config
+pinecone.config.json
+
+# Ignore any LangChain cache if enabled
+lc_cache/
+
+# __init__.pyc or temp modules
+*.so
+*.dll
+
+# VS Code dev containers (optional)
+.devcontainer/
