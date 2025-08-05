@@ -48,4 +48,4 @@ async def run_hackrx(request: RunRequest, http_request: Request):
     answers = await generate_answer(request.questions)
     print("✅ Answers generated in", time.time() - start)
 
-    return {"message": "HackRX run completed", "answers": answers}
+    return {"answers": answers}

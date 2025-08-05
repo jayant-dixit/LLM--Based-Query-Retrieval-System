@@ -21,5 +21,9 @@ RUN pip install -r requirements.txt
 # Expose the port the app runs on
 EXPOSE 8000
 
+# Add this line before CMD
+ENV PINECONE_API_KEY=pcsk_6WZck3_FJ6yG2hzRZBqHnXMdwbYFGBmvAQcGSifX58GuGwynBC1yLyBWUiWneCVjbChcJA
+
+
 # Run the app
 CMD ["python", "main.py"]
