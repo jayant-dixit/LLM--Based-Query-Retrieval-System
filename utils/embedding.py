@@ -1,19 +1,29 @@
 from sentence_transformers import SentenceTransformer
+import uuid
+import re
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+
+def split_into_clauses(text: str) -> list[str]:
+    # Split on sentence-like punctuation (adjust as needed)
+    return [clause.strip() for clause in re.split(r'[.;:\n]', text) if clause.strip()]
 
 def embed_text(pages: list[str]) -> list[dict]:
     """
-    Embeds each page separately and prepares data for Pinecone.
+    Splits each page into clauses, embeds them, and prepares data for Pinecone.
     """
-    vectors = model.encode(pages, convert_to_numpy=True)
+    all_clauses = []
+    for page in pages:
+        clauses = split_into_clauses(page)
+        all_clauses.extend(clauses)
+
+    vectors = model.encode(all_clauses, convert_to_numpy=True)
 
     return [
         {
-            "id": f"hackrx-{i}",
+            "id": str(uuid.uuid4()),  # Unique ID per clause
             "values": vector.tolist(),
-            "metadata": {"text": pages[i]}
+            "metadata": {"text": all_clauses[i]}
         }
         for i, vector in enumerate(vectors)
     ]
-

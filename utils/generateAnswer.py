@@ -5,28 +5,34 @@ from groq import Groq
 from config import GROQ_API_KEY, PINECONE_API_KEY, PINECONE_INDEX_NAME
 
 groq = Groq(api_key=GROQ_API_KEY)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('BAAI/bge-small-en-v1.5')
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
 async def fetch_answer(query, embedding):
-    results = index.query(vector=embedding, top_k=1, namespace="hackrx", include_metadata=True)
-    context = "\n".join([match['metadata']['text'] for match in results['matches']])
+    results = index.query(vector=embedding, top_k=5, namespace="hackrx", include_metadata=True)
+    context = "\n\n".join([match['metadata']['text'] for match in results['matches']])
+
 
     prompt = f"""
-        You are a helpful assistant. Use the context below to answer the question.
+You are a professional assistant. Use the context below to answer the question accurately and concisely.
 
-        Context:
-        {context}
+First, think step-by-step to match relevant clause from the context.
+Then, output only the final answer as a short sentence.
 
-        Question:
-        {query}
-    """
+Context:
+{context}
+
+Question:
+{query}
+"""
+
 
     response = groq.chat.completions.create(
         model="llama3-8b-8192",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=80
+        max_tokens=80,
+        temperature=0.2
     )
 
     return response.choices[0].message.content.strip()
