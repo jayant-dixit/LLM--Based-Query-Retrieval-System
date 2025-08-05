@@ -1,0 +1,3 @@
+services:
+  fastapi-app:
+    image: ghcr.io/jayant024/my-fastapi-app 
