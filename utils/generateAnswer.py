@@ -10,30 +10,45 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
 async def fetch_answer(query, embedding):
-    results = index.query(vector=embedding, top_k=5, namespace="hackrx", include_metadata=True)
-    context = "\n\n".join([match['metadata']['text'] for match in results['matches']])
+    results = index.query(
+                    vector=embedding,
+                    top_k=5,
+                    namespace="hackrx",
+                    filter={"source": {"$eq": "Uploaded PDF"}},
+                    include_metadata=True
+    )               
 
+    
+    context = "\n\n".join([
+        f"[Page {m['metadata'].get('page_number')}] {m['metadata']['text']}" 
+        for m in results['matches']])
 
     prompt = f"""
-You are a professional assistant. Use the context below to answer the question accurately and concisely.
+            You are a professional assistant. Use the provided context to answer the question.
 
-First, think step-by-step to match relevant clause from the context.
-Then, output only the final answer as a short sentence.
+            Instructions:
+            - Use only the facts provided.
+            - Refer to the most relevant chunk.
+            - Be concise and specific.
 
-Context:
-{context}
+            Context:
+            {context}
 
-Question:
-{query}
-"""
+            Question:
+            {query}
+
+            Answer:"""
+
 
 
     response = groq.chat.completions.create(
         model="llama3-8b-8192",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=80,
+        max_tokens=150,
         temperature=0.2
     )
+
+    print(f"Q: {query}\nRetrieved Context:\n{context}\nA: {response}")
 
     return response.choices[0].message.content.strip()
 

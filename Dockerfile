@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
 # Copy project files into the container
 COPY . /app/
 
+# RUN apt-get update && apt-get install -y git-lfs
+
+
 # Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt

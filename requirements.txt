@@ -8,3 +8,10 @@ pinecone
 dotenv
 groq
 asyncio
+# LLM Inference Server
+# vllm
+
+# HuggingFace model downloading + auth
+# huggingface-hub
+# git-lfs
+
