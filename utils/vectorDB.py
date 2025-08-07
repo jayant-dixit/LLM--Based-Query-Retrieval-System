@@ -1,36 +1,21 @@
 from pinecone import Pinecone
 from config import PINECONE_API_KEY, PINECONE_INDEX_NAME
-import re
-import uuid
-from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer("BAAI/bge-small-en-v1.5")
-
-def split_into_clauses(text):
-    # Split on punctuation marks like '.', ';', or newlines (tune as needed)
-    clauses = re.split(r'[.;\n]', text)
-    return [clause.strip() for clause in clauses if clause.strip()]
-
-def prepare_embeddings(document_text):
-    clauses = split_into_clauses(document_text)
-    embeddings = []
-    for clause in clauses:
-        emb = model.encode(clause).tolist()
-        embeddings.append((str(uuid.uuid4()), emb, {"text": clause}))
-    return embeddings
-
-BATCH_SIZE = 100  # adjust if needed to stay under 4 MB per request
+BATCH_SIZE = 100
 
 def upsert_embeddings(embeddings: list):
     pc = Pinecone(api_key=PINECONE_API_KEY)
     index_name = PINECONE_INDEX_NAME
 
-    if index_name not in [i.name for i in pc.list_indexes()]:
+    # Check if index exists before creating
+    # CORRECTED LINE: Call the .names() method
+    if index_name not in pc.list_indexes().names(): 
+        # Using a fixed dimension for 'BAAI/bge-small-en-v1.5' which is 384
         pc.create_index(
             name=index_name,
-            dimension=len(embeddings[0]["values"]),  # fixed from [1] to ["values"]
+            dimension=384,
             metric="cosine",
-            spec={"cloud": "aws", "region": "us-east-1"}
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}}
         )
 
     index = pc.Index(index_name)

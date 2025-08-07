@@ -5,7 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 from utils.documentLoader import extract_text_by_page, download_pdf_from_url
 from utils.embedding import embed_text
 from utils.generateAnswer import generate_answer
-from utils.vectorDB import upsert_embeddings, prepare_embeddings
+from utils.vectorDB import upsert_embeddings
 import time
 from fastapi import Request
 from config import PINECONE_API_KEY
@@ -40,12 +40,9 @@ async def run_hackrx(request: RunRequest, http_request: Request):
     pages = await run_in_threadpool(extract_text_by_page, document_path)
     print("✅ Text extracted in", time.time() - start)
 
-
     embeddings = await run_in_threadpool(embed_text, pages)
     print("✅ Embeddings created in", time.time() - start)
     
-    # create_embeddings = await run_in_threadpool(prepare_embeddings, embeddings)
-
     await run_in_threadpool(upsert_embeddings, embeddings)
     print("✅ Embeddings upserted in", time.time() - start)
 

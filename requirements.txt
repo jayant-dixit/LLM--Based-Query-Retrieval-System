@@ -6,12 +6,7 @@ PyMuPDF
 sentence_transformers
 pinecone
 dotenv
+langchain
+rank_bm25
+# google-generativeai
 groq
-asyncio
-# LLM Inference Server
-# vllm
-
-# HuggingFace model downloading + auth
-# huggingface-hub
-# git-lfs
-

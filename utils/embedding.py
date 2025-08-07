@@ -1,48 +1,33 @@
 from sentence_transformers import SentenceTransformer
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 import uuid
-import re
 
 model = SentenceTransformer('BAAI/bge-small-en-v1.5')
 
-def split_into_clauses(text: str) -> list[str]:
-    return [clause.strip() for clause in re.split(r'[.;:\n]', text) if clause.strip()]
-
-def extract_section_title(text: str) -> str:
-    lines = text.strip().split("\n")
-    for line in lines[:3]:
-        if re.match(r'^[A-Z][A-Z\s\-0-9]{4,}$', line.strip()):
-            return line.strip()
-        if re.match(r'^\d+(\.\d+)*\s+[A-Z].*', line.strip()):
-            return line.strip()
-    return "Unknown Section"
-
 def embed_text(pages: list[str], doc_title: str = "Uploaded PDF") -> list[dict]:
-    all_clauses = []
-    metadata_list = []
-
-    for page_num, page in enumerate(pages):
-        section_title = extract_section_title(page)
-        clauses = split_into_clauses(page)
-
-        for i, clause in enumerate(clauses):
-            all_clauses.append(clause)
-            metadata_list.append({
-                "text": clause,
-                "page_number": page_num + 1,
-                "section_title": section_title,
-                "chunk_index": page_num,
-                "sentence_index": i,
-                "document_title": doc_title,
-                "source": "Uploaded PDF"
-            })
-
-    vectors = model.encode(all_clauses, convert_to_numpy=True)
+    full_text = "\n\n".join(pages)
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50,
+        separators=["\n\n", "\n", " ", ""]
+    )
+    
+    docs = text_splitter.create_documents([full_text])
+    
+    all_chunks = [doc.page_content for doc in docs]
+    
+    vectors = model.encode(all_chunks, convert_to_numpy=True)
 
     return [
         {
             "id": str(uuid.uuid4()),
             "values": vectors[i].tolist(),
-            "metadata": metadata_list[i]
+            "metadata": {
+                "text": all_chunks[i],
+                "document_title": doc_title,
+                "source": "Uploaded PDF"
+            }
         }
-        for i in range(len(all_clauses))
+        for i in range(len(all_chunks))
     ]
