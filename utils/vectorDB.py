@@ -1,3 +1,4 @@
+# MultipleFiles/vectorDB.py
 from pinecone import Pinecone
 from config import PINECONE_API_KEY, PINECONE_INDEX_NAME
 import time
@@ -35,3 +36,5 @@ def upsert_embeddings(embeddings: list):
     for i in range(0, len(embeddings), BATCH_SIZE):
         batch = embeddings[i:i + BATCH_SIZE]
         index.upsert(vectors=batch, namespace="hackrx")
+    print(f"Upserted {len(embeddings)} embeddings to Pinecone.")
+

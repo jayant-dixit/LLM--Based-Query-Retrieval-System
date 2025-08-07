@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from fastapi.concurrency import run_in_threadpool
 from utils.documentLoader import extract_text_by_page, download_pdf_from_url
 from utils.embedding import embed_text
-from utils.generateAnswer import generate_answer
+from utils.generateAnswer import generate_answer, initialize_bm25_corpus
 from utils.vectorDB import upsert_embeddings, reset_pinecone_index # IMPORT THE NEW FUNCTION
 import time
 from fastapi import Request
@@ -31,26 +31,41 @@ async def run_hackrx(request: RunRequest, http_request: Request):
     if not token or token != secret_token:
         return {"error": "Unauthorized"}, 401
             
-    start = time.time()
-    print("⏳ Start")
+    try:
+            pdf_path = await download_pdf_from_url(request.documents)
+            print(f"PDF downloaded to {pdf_path}")
 
-    document_path = await download_pdf_from_url(request.documents)
-    print("✅ PDF downloaded in", time.time() - start)
+            print("Extracting text from PDF...")
+            pages = extract_text_by_page(pdf_path)
+            os.remove(pdf_path) # Clean up temporary file
+            print(f"Extracted {len(pages)} pages.")
 
-    pages = await run_in_threadpool(extract_text_by_page, document_path)
-    print("✅ Text extracted in", time.time() - start)
+            print("Embedding text chunks...")
+            embeddings = embed_text(pages)
+            print(f"Generated {len(embeddings)} embeddings.")
 
-    embeddings = await run_in_threadpool(embed_text, pages)
-    print("✅ Embeddings created in", time.time() - start)
-    
-    # NEW STEP: Reset the Pinecone index before upserting
-    await run_in_threadpool(reset_pinecone_index)
-    print("✅ Pinecone index reset in", time.time() - start)
-    
-    await run_in_threadpool(upsert_embeddings, embeddings)
-    print("✅ Embeddings upserted in", time.time() - start)
+            print("Resetting Pinecone index...")
+            reset_pinecone_index()
 
-    answers = await generate_answer(request.questions)
-    print("✅ Answers generated in", time.time() - start)
+            print("Upserting embeddings to Pinecone...")
+            upsert_embeddings(embeddings)
+            print("Embeddings upserted.")
 
-    return {"answers": answers}
+            # --- Initialize BM25 Corpus ---
+            # This is crucial for the hybrid search
+            initialize_bm25_corpus(embeddings) # Pass the list of chunk dicts
+
+
+            print("\nGenerating answers for queries...")
+            answers = await generate_answer(request.questions)
+
+            for i, (query, answer) in enumerate(zip(request.questions, answers)):
+                print(f"\n--- Query {i+1} ---")
+                print(f"Q: {query}")
+                print(f"A: {answer}")
+
+            return {"answers": answers}
+        
+    except Exception as e:
+            print(f"An error occurred: {e}")
+            return {"error": str(e)}

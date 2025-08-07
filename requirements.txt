@@ -4,6 +4,7 @@ uvicorn
 aiohttp
 PyMuPDF
 sentence_transformers
+sentence-transformers
 pinecone
 dotenv
 langchain
