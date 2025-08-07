@@ -24,9 +24,7 @@ def embed_text(pages: list[str], doc_title: str = "Uploaded PDF") -> list[dict]:
             "id": str(uuid.uuid4()),
             "values": vectors[i].tolist(),
             "metadata": {
-                "text": all_chunks[i],
-                "document_title": doc_title,
-                "source": "Uploaded PDF"
+                "text": all_chunks[i]
             }
         }
         for i in range(len(all_chunks))

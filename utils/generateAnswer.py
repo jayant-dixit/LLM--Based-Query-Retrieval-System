@@ -10,13 +10,24 @@ reranker_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(PINECONE_INDEX_NAME)
 
+
+# NEW FUNCTION: Generates a hypothetical answer for a query
+async def generate_hypothetical_answer(query: str) -> str:
+    prompt = f"Please write a comprehensive, hypothetical answer to the following question about the provided document. The purpose of this is to improve document retrieval, not for the answer itself.\n\nQuestion: {query}\n\nAnswer:"
+    response = groq_client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=250,
+        temperature=0.5
+    )
+    return response.choices[0].message.content.strip()
+
 async def fetch_answer(query, embedding):
     # Retrieve top 10 results to give the reranker more options
     results = index.query(
-        vector=embedding,
+        vector=embedding, # This embedding is now for the hypothetical answer
         top_k=10,
         namespace="hackrx",
-        filter={"source": {"$eq": "Uploaded PDF"}},
         include_metadata=True
     )
 
@@ -33,14 +44,14 @@ async def fetch_answer(query, embedding):
 
     # UPDATED PROMPT
     prompt = f"""
-        You are a highly skilled and helpful legal and insurance agent for Bajaj HackRx. Your goal is to answer questions based on the provided documents.
+        You are a highly skilled and accurate Q&A system. Your task is to answer the user's question using only the facts from the provided context.
 
         Instructions:
-        1. **Prioritize the context:** First, check the provided context for the answer.
-        2. **Act as an expert:** If the context is incomplete or does not contain a direct answer, use your expertise as a legal and insurance agent to infer a helpful and logical response.
-        3. **Provide a confident answer:** Do not say "I don't know" or "The information is not available." Instead, provide the most plausible and helpful answer based on the context and your professional persona.
-        4. **Be concise:** Keep your answers to the point.
-        
+        1. Read the provided context carefully.
+        2. Answer the question concisely and directly.
+        4. Do not make up any information.
+        5. The context might contain multiple relevant sections. Synthesize them into a single, coherent answer if necessary.
+
         Context:
         {context}
 
@@ -61,7 +72,11 @@ async def fetch_answer(query, embedding):
     return response.choices[0].message.content.strip()
 
 async def generate_answer(queries: list[str]) -> list[str]:
-    query_embeddings = embedding_model.encode(queries, convert_to_numpy=True).tolist()
+    # First, generate hypothetical answers for all queries concurrently
+    hypothetical_answers = await asyncio.gather(*[generate_hypothetical_answer(q) for q in queries])
+    
+    # Then, embed the hypothetical answers
+    query_embeddings = embedding_model.encode(hypothetical_answers, convert_to_numpy=True).tolist()
 
     # run all LLM calls concurrently
     tasks = [fetch_answer(query, embedding) for query, embedding in zip(queries, query_embeddings)]
