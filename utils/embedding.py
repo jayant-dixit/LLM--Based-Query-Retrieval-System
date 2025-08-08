@@ -25,7 +25,7 @@ def embed_text(pages: list[str], doc_title: str = "Uploaded PDF") -> list[dict]:
     # For policy documents, sometimes keeping slightly larger chunks that encompass
     # a full policy point or sub-section is better than breaking at every sentence.
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=900, # Slightly increased chunk size, experiment with this
+        chunk_size=950, # Slightly increased chunk size, experiment with this
         chunk_overlap=200, # Increased overlap to ensure context is not lost
         separators=separators
     )
@@ -33,6 +33,8 @@ def embed_text(pages: list[str], doc_title: str = "Uploaded PDF") -> list[dict]:
     docs = text_splitter.create_documents([full_text])
     
     all_chunks = [doc.page_content for doc in docs]
+    
+    print(all_chunks)
     
     vectors = model.encode(all_chunks, convert_to_numpy=True)
 

@@ -11,3 +11,29 @@ langchain
 rank_bm25
 # google-generativeai
 groq
+
+
+fastapi
+uvicorn
+pydantic
+
+# LangChain (minimal essential only)
+langchain-core
+langchain-groq
+langgraph
+
+# Document Processing (lightweight)
+PyPDF2
+python-docx
+
+# Vector Database (optimized)
+sentence-transformers
+pinecone-client
+langchain-community
+numpy
+
+# Essential utilities only
+python-multipart
+requests
+python-dotenv
+httpx

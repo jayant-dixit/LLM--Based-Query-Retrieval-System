@@ -29,4 +29,4 @@ ENV PINECONE_API_KEY=pcsk_6WZck3_FJ6yG2hzRZBqHnXMdwbYFGBmvAQcGSifX58GuGwynBC1yLy
 
 
 # Run the app
-CMD ["python", "main.py"]
+CMD ["python", "rag.py"]

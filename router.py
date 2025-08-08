@@ -59,10 +59,10 @@ async def run_hackrx(request: RunRequest, http_request: Request):
             print("\nGenerating answers for queries...")
             answers = await generate_answer(request.questions)
 
-            for i, (query, answer) in enumerate(zip(request.questions, answers)):
-                print(f"\n--- Query {i+1} ---")
-                print(f"Q: {query}")
-                print(f"A: {answer}")
+            # for i, (query, answer) in enumerate(zip(request.questions, answers)):
+            #     print(f"\n--- Query {i+1} ---")
+            #     print(f"Q: {query}")
+            #     print(f"A: {answer}")
 
             return {"answers": answers}
         
