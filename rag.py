@@ -1453,9 +1453,7 @@ if __name__ == "__main__":
     - POST /hackrx/run-legacy - Legacy endpoint (fallback)
     - GET /health - Health check
     - GET /metrics - System metrics
-    
-    Authentication:
-    Bearer Token: dbbdb701cfc45d4041e22a03edbfc65753fe9d7b4b9ba1df4884e864f3bb934d
+    Rag pipeline is running
 
 
     """)
